@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Peralta&family=Poppins&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Peralta&family=Poppins&display=swap");
+    </style>
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="header">
+      <a class="logo">Learn a song and record it!</a>
+      <div class="header-right">
+        <a class="sync" href="https://web2pwa-xksg.onrender.com">Tabs</a>
+        <a class="sync" onclick="registerNotification()">Notify when online</a
+        ><a
+          href="https://web2pwa-xksg.onrender.com/contact"
+          onclick="registerNotification()"
+          class="sync"
+          >Contact us</a
+        >
+      </div>
+    </div>
+    <div class="form-container">
+      <form class="contact-form">
+        <h2>CONTACT</h2>
+        <input type="text" id="name" placeholder="Full name" /><br />
+        <input type="email" id="email" placeholder="Email" /><br />
+        <input type="test" id="subject" placeholder="Subject" /><br />
+        <textarea
+          id="message"
+          placeholder="message"
+          cols="30"
+          rows="10"
+        ></textarea
+        ><br />
+        <input type="submit" class="submit" value="Send message" />
+      </form>
+    </div>
+    <script>
+      const contactForm = document.querySelector(".contact-form");
+      let name = document.getElementById("name");
+      let email = document.getElementById("email");
+      let subject = document.getElementById("subject");
+      let message = document.getElementById("message");
+
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let formData = {
+          name: name.value,
+          email: email.value,
+          subject: subject.value,
+          message: message.value,
+        };
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/contact");
+        xhr.setRequestHeader("content-type", "application/json");
+        xhr.onload = function () {
+          //console.log(xhr.responseText);
+          if (xhr.responseText == "success") {
+            registerNotificationTwo();
+            name.value = "";
+            email.value = "";
+            subject.value = "";
+            message.value = "";
+          } else {
+            alert("Something went wrong");
+          }
+        };
+        xhr.send(JSON.stringify(formData));
+        fetch("/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        })
+          .then(() => Promise.resolve())
+          .catch(() => Promise.reject());
+      });
+    </script>
+    <script>
+      function registerNotification(e) {
+        Notification.requestPermission((permission) => {
+          if (permission === "granted") {
+            registerBackgroundSync();
+          } else console.error("Permission was not granted.");
+        });
+      }
+      function registerNotificationTwo(e) {
+        Notification.requestPermission((permission) => {
+          if (permission === "granted") {
+            registerBackgroundSyncTwo();
+          } else console.error("Permission was not granted.");
+        });
+      }
+
+      /*function postSync() {
+        let obj = { name: "Bruno" };
+        this.http.post("/data", obj).subscribe(
+          (res) => {
+            console.log(res);
+          },
+          (err) => {
+            this.registerBackgroundSync();
+          }
+        );
+      }*/
+      function registerBackgroundSync() {
+        if (!navigator.serviceWorker) {
+          return console.error("Service Worker not supported");
+        }
+        navigator.serviceWorker.ready
+          .then((registration) => registration.sync.register("sync-two"))
+          .then(() => console.log("Registered background sync"))
+          .catch((err) =>
+            console.error("Error registering background sync", err)
+          );
+      }
+
+      function registerBackgroundSyncTwo() {
+        if (!navigator.serviceWorker) {
+          return console.error("Service Worker not supported");
+        }
+        navigator.serviceWorker.ready
+          .then((registration) => registration.sync.register("sync"))
+          .then(() => console.log("Registered background sync"))
+          .catch((err) =>
+            console.error("Error registering background sync", err)
+          );
+      }
+      function pushNotify() {
+        let obj = { name: "Bruno" };
+        fetch("/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(obj),
+        })
+          .then(() => Promise.resolve())
+          .catch(() => Promise.reject());
+      }
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("/SW.js", { type: "module" })
+          .then((reg) => console.log("SW registered!", reg))
+          .catch((err) => console.log("boo", err));
+      }
+    </script>
+  </body>
+</html>

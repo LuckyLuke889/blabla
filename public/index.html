@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Peralta&family=Poppins&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="theme-color" content="#4285f4" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Peralta&family=Poppins&display=swap");
+    </style>
+    <title>Guitar recorder</title>
+  </head>
+  <body>
+    <div class="header">
+      <a class="logo">Learn a song and record it!</a>
+      <div class="header-right">
+        <!--<a href="http://localhost:3000/">Tabs</a>-->
+        <a href="https://web2pwa-xksg.onrender.com">Tabs</a>
+        <a class="sync" onclick="registerNotification()">Notify when online</a>
+        <!--<a href="http://localhost:3000/contact" class="sync">Contact us</a>-->
+        <a href="https://web2pwa-xksg.onrender.com/contact" class="sync"
+          >Contact us</a
+        >
+      </div>
+    </div>
+    <p id="background-sync"></p>
+
+    <div class="card">
+      <img src="/images/sweetChildTab.jpg" alt="Avatar" style="width: 100%" />
+      <div class="container">
+        <h4><b>Sweet Child O' Mine</b></h4>
+        <p>by GNR</p>
+      </div>
+    </div>
+    <div class="card">
+      <img
+        src="/images/sweetHomeAlabama.png"
+        alt="Avatar2"
+        style="width: 100%"
+      />
+      <div class="container">
+        <h4><b>Sweet Home Alabama</b></h4>
+        <p>by Lynyrd Skynyrd</p>
+      </div>
+    </div>
+    <div class="card">
+      <img src="/images/standbyme.JPG" alt="Avatar2" style="width: 100%" />
+      <div class="container">
+        <h4><b>Stand by Me</b></h4>
+        <p>by Ben E. King</p>
+      </div>
+    </div>
+
+    <video autoplay style="height: 180px; width: 240px"></video>
+    <p>
+      <button onclick="getStream()">Record yourself playing a song!</button>
+    </p>
+    <p><button onclick="download()">Download!</button></p>
+    <script>
+      function registerNotification(e) {
+        Notification.requestPermission((permission) => {
+          if (permission === "granted") {
+            registerBackgroundSync();
+          } else console.error("Permission was not granted.");
+        });
+      }
+
+      function postSync() {
+        let obj = { name: "Bruno" };
+        this.http.post("/data", obj).subscribe(
+          (res) => {
+            console.log(res);
+          },
+          (err) => {
+            this.registerBackgroundSync();
+          }
+        );
+      }
+      function registerBackgroundSync() {
+        if (!navigator.serviceWorker) {
+          return console.error("Service Worker not supported");
+        }
+        navigator.serviceWorker.ready
+          .then((registration) => registration.sync.register("sync-two"))
+          .then(() => console.log("Registered background sync"))
+          .catch((err) =>
+            console.error("Error registering background sync", err)
+          );
+      }
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("/SW.js", { type: "module" })
+          .then((reg) => console.log("SW registered!", reg))
+          .catch((err) => console.log("boo", err));
+      }
+
+      function getUserMedia(options, successCallback, failureCallback) {
+        var api =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia ||
+          navigator.msGetUserMedia;
+        if (api) {
+          return api.bind(navigator)(options, successCallback, failureCallback);
+        }
+      }
+
+      var theStream;
+      var theRecorder;
+      var recordedChunks = [];
+
+      function getStream() {
+        if (
+          !navigator.getUserMedia &&
+          !navigator.webkitGetUserMedia &&
+          !navigator.mozGetUserMedia &&
+          !navigator.msGetUserMedia
+        ) {
+          alert("User Media API not supported.");
+          return;
+        }
+
+        var constraints = { video: true, audio: true };
+        getUserMedia(
+          constraints,
+          function (stream) {
+            var mediaControl = document.querySelector("video");
+
+            if ("srcObject" in mediaControl) {
+              mediaControl.srcObject = stream;
+            } else if (navigator.mozGetUserMedia) {
+              mediaControl.mozSrcObject = stream;
+            } else {
+              mediaControl.src = (
+                window.URL || window.webkitURL
+              ).createObjectURL(stream);
+            }
+
+            theStream = stream;
+            try {
+              recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+            } catch (e) {
+              console.error("Exception while creating MediaRecorder: " + e);
+              return;
+            }
+            theRecorder = recorder;
+            console.log("MediaRecorder created");
+            recorder.ondataavailable = recorderOnDataAvailable;
+            recorder.start(100);
+          },
+          function (err) {
+            alert("Error: " + err);
+          }
+        );
+      }
+
+      function recorderOnDataAvailable(event) {
+        if (event.data.size == 0) return;
+        recordedChunks.push(event.data);
+      }
+
+      function download() {
+        console.log("Saving data");
+        theRecorder.stop();
+        theStream.getTracks()[0].stop();
+
+        var blob = new Blob(recordedChunks, { type: "video/webm" });
+        var url = (window.URL || window.webkitURL).createObjectURL(blob);
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        a.href = url;
+        a.download = "test.webm";
+        a.click();
+
+        // setTimeout() here is needed for Firefox.
+        setTimeout(function () {
+          (window.URL || window.webkitURL).revokeObjectURL(url);
+        }, 100);
+      }
+    </script>
+    <style>
+      body {
+        background-image: url(./images/guitar.jpg);
+        background-size: 100% auto;
+        font-family: "Peralta", cursive;
+
+        font-family: "Poppins", sans-serif;
+      }
+      .header {
+        overflow: hidden;
+        background-color: #f1f1f1;
+        padding: 20px 10px;
+      }
+
+      /* Style the header links */
+      .header a {
+        float: left;
+        color: black;
+        text-align: center;
+        padding: 12px;
+        text-decoration: none;
+        font-size: 18px;
+        line-height: 25px;
+        border-radius: 4px;
+      }
+      .header a.sync:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .header a.logo {
+        font-size: 25px;
+        font-weight: bold;
+      }
+
+      .header-right {
+        float: right;
+      }
+
+      @supports (position: sticky) {
+        .header {
+          overflow: hidden;
+          top: 0;
+          position: sticky;
+        }
+      }
+
+      @supports not (position: sticky) {
+        header {
+          position: fixed;
+          height: 60px;
+        }
+        body {
+          margin-top: 60px;
+        }
+      }
+
+      .card {
+        text-align: center;
+        width: 30%;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+        margin: auto;
+      }
+
+      .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+        transform: scale(2);
+      }
+
+      .container {
+        text-align: center;
+        padding: 2px 16px;
+      }
+    </style>
+  </body>
+</html>

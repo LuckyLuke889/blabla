@@ -1,0 +1,53 @@
+{
+  "name": "Make a video",
+  "short_name": "Bruno",
+  "id": "/index.html",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFE9D2",
+  "theme_color": "#FFE1C4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/guitar-icon.jpg",
+      "type": "image/png",
+      "sizes": "72x72"
+    },
+    {
+      "src": "/images/guitar-icon(1).jpg",
+      "type": "image/png",
+      "sizes": "96x96"
+    },
+    {
+      "src": "/images/guitar-icon(2).jpg",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "/images/guitar-icon(3).jpg",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "/images/guitar-icon(4).jpg",
+      "type": "image/png",
+      "sizes": "152x152"
+    },
+    {
+      "src": "/images/guitar-icon(5).jpg",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/guitar-icon(7).jpg",
+      "type": "image/png",
+      "sizes": "384x384"
+    },
+    {
+      "src": "/images/guitar-icon(8).jpg",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}
